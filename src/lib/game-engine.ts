@@ -1,9 +1,10 @@
-import { sql } from '@/lib/db';
+import { getSql } from '@/lib/db';
 import { generateSpin } from '@/lib/rng';
 
 export async function processSpin(userId: string, betAmount: number, clientSeed: string, nonce: number) {
   const MIN_BET = parseInt(process.env.MIN_BET || '10');
   const MAX_BET = parseInt(process.env.MAX_BET || '1000');
+  const sql = getSql();
 
   if (betAmount < MIN_BET || betAmount > MAX_BET) {
     throw new Error(`Bet must be between ${MIN_BET} and ${MAX_BET}`);

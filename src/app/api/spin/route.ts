@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { processSpin } from '@/lib/game-engine';
-import { sql } from '@/lib/auth';
+import { getSql } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const sql = getSql();
     const [session] = await sql`
       SELECT user_id FROM sessions WHERE token = ${sessionToken} AND expires_at > NOW()
     `;
