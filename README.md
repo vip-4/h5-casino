@@ -1,13 +1,21 @@
-# H5 Casino / Slot Game - 本地部署配置
+# H5 Casino / Slot Game - 生产级部署配置
 
 ## 技术栈
 
 - **前端**: Next.js 14 + React 18 + Tailwind CSS
 - **数据库**: Neon Serverless PostgreSQL
-- **认证**: NextAuth.js (Session-based)
-- **游戏引擎**: 原生 Canvas / DOM + 服务端 RNG
+- **认证**: Session-based (简化演示)
+- **游戏引擎**: 原生 DOM + 服务端 RNG (HMAC-SHA256)
 - **边缘**: Cloudflare CDN + WAF
 - **部署**: Vercel Edge Network
+- **CI/CD**: GitHub Actions
+
+## 生产环境状态
+
+- **GitHub**: https://github.com/vip-4/h5-casino
+- **Vercel**: https://h5-casino.vercel.app
+- **Neon Project**: `polished-sound-81352481`
+- **Database**: `neondb` (neondb_owner)
 
 ## 项目结构
 
@@ -29,6 +37,10 @@ h5-casino/
 │   │   ├── rng.ts                    # 服务端随机数
 │   │   └── game-engine.ts            # 游戏逻辑
 │   └── store/gameStore.ts            # Zustand 状态
+├── .github/workflows/
+│   ├── ci.yml                        # CI 流水线
+│   ├── deploy.yml                    # 部署流水线
+│   └── db-migrate.yml                # 数据库迁移
 ├── Dockerfile
 ├── docker-compose.yml
 ├── next.config.js
@@ -132,34 +144,77 @@ npm run dev
 
 ## 部署到生产环境
 
-### Vercel 部署
+### 已完成的部署
 
-```bash
-# 安装 Vercel CLI
-npm install -g vercel
+- **生产 URL**: https://h5-casino.vercel.app
+- **Vercel 项目**: 886/h5-casino
+- **项目 ID**: `prj_BlhZK66DTubbkA17BOL9patzjePT`
+- **Org ID**: `886`
 
-# 登录
-vercel login
+### GitHub Actions CI/CD
 
-# 部署
-vercel --prod
-```
+本仓库已配置 GitHub Actions 自动部署流水线：
+
+1. **CI** (`.github/workflows/ci.yml`): PR 时自动运行测试、类型检查、构建
+2. **Deploy** (`.github/workflows/deploy.yml`): 推送到 main 时自动部署到 Vercel
+3. **DB Migration** (`.github/workflows/db-migrate.yml`): 数据库 schema 变更时自动迁移
+
+### GitHub Secrets 配置
+
+在 GitHub 仓库 Settings → Secrets and variables → Actions 中添加：
+
+| Secret | 说明 | 获取方式 |
+|--------|------|----------|
+| `VERCEL_TOKEN` | Vercel API Token | `vercel tokens ls` |
+| `VERCEL_ORG_ID` | Vercel 组织 ID | `886` |
+| `VERCEL_PROJECT_ID` | Vercel 项目 ID | `prj_BlhZK66DTubbkA17BOL9patzjePT` |
+| `NEON_DATABASE_URL` | Neon 连接字符串 | Neon Console → Connection Details |
+| `NEON_API_KEY` | Neon API Key | Neon Console → API Keys |
+| `NEON_PROJECT_ID` | Neon 项目 ID | `polished-sound-81352481` |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API Token | Cloudflare Dashboard → API Tokens |
+| `CLOUDFLARE_ZONE_ID` | Cloudflare Zone ID | Cloudflare Dashboard → Domain → Overview |
+| `SLACK_WEBHOOK` | Slack 通知 Webhook | Slack → Apps → Incoming Webhooks |
 
 ### Cloudflare 配置
 
-1. 在 Cloudflare Dashboard 添加域名
-2. 配置 DNS 指向 Vercel
-3. 启用 WAF 规则：
-   - 速率限制: `/api/spin` 每分钟最多 60 次
-   - 阻止恶意 IP
-4. 配置缓存规则：
-   - 静态资源: Cache Everything, TTL 7d
+#### 1. 域名接入
+
+```bash
+# 在 Cloudflare Dashboard 添加域名后，修改 Nameserver
+# 或使用 Cloudflare CLI 导入 DNS 记录
+```
+
+#### 2. WAF 规则
+
+```json
+{
+  "rules": [
+    {
+      "action": "block",
+      "expression": "(http.request.uri.path contains \"/api/spin\") and ip.reputation in {suspicious}"
+    },
+    {
+      "action": "challenge",
+      "expression": "rate(1m, http.request.uri.path eq \"/api/spin\") > 100"
+    }
+  ]
+}
+```
+
+#### 3. 缓存规则
+
+| 路径 | 策略 |
+|------|------|
+| `/static/*` | Cache Everything, TTL 7d |
+| `/api/*` | No Store |
+| `/_next/static/*` | Cache Everything, TTL 1y |
 
 ### Neon 生产配置
 
 1. 启用 Read Replicas
 2. 设置连接池限制
 3. 启用自动暂停
+4. 配置备份策略
 
 ## API 接口
 
