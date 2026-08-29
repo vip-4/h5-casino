@@ -10,9 +10,10 @@ export async function processSpin(userId: string, betAmount: number, clientSeed:
     throw new Error(`Bet must be between ${MIN_BET} and ${MAX_BET}`);
   }
 
-  const [user] = await sql`
+  const userResult = await sql`
     SELECT balance FROM users WHERE id = ${userId}
   `;
+  const user = (userResult as any[])[0];
 
   if (!user || user.balance < betAmount) {
     throw new Error('Insufficient balance');
@@ -21,7 +22,7 @@ export async function processSpin(userId: string, betAmount: number, clientSeed:
   const serverSeed = process.env.GAME_SERVER_SEED || 'default-secret-key';
   const result = generateSpin(serverSeed, clientSeed, nonce);
 
-  const updated = await sql`
+  const updatedResult = await sql`
     UPDATE users 
     SET balance = balance - ${betAmount} + ${result.payout},
         total_spins = total_spins + 1,
@@ -29,8 +30,9 @@ export async function processSpin(userId: string, betAmount: number, clientSeed:
     WHERE id = ${userId} AND balance >= ${betAmount}
     RETURNING *
   `;
+  const updated = (updatedResult as any[])[0];
 
-  if (!updated[0]) {
+  if (!updated) {
     throw new Error('Transaction failed');
   }
 
@@ -43,7 +45,7 @@ export async function processSpin(userId: string, betAmount: number, clientSeed:
     success: true,
     reels: result.reels,
     payout: result.payout,
-    newBalance: updated[0].balance,
+    newBalance: updated.balance,
     isWin: result.isWin
   };
 }

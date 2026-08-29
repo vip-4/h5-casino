@@ -13,9 +13,10 @@ export async function POST(req: NextRequest) {
     }
 
     const sql = getSql();
-    const [session] = await sql`
+    const sessionResult = await sql`
       SELECT user_id FROM sessions WHERE token = ${sessionToken} AND expires_at > NOW()
     `;
+    const session = (sessionResult as any[])[0];
 
     if (!session) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });

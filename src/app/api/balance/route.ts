@@ -12,17 +12,19 @@ export async function GET(req: NextRequest) {
     }
 
     const sql = getSql();
-    const [session] = await sql`
+    const sessionResult = await sql`
       SELECT user_id FROM sessions WHERE token = ${sessionToken} AND expires_at > NOW()
     `;
+    const session = (sessionResult as any[])[0];
 
     if (!session) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
     }
 
-    const [user] = await sql`
+    const userResult = await sql`
       SELECT balance, total_spins, total_wagered FROM users WHERE id = ${session.user_id}
     `;
+    const user = (userResult as any[])[0];
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
