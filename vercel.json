@@ -2,7 +2,6 @@
   "regions": ["iad1"],
   "functions": {
     "app/api/spin/route.ts": {
-      "memory": 1024,
       "maxDuration": 30
     }
   },
