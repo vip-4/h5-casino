@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: neonlabs/neon:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=h5_casino
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/h5_casino?sslmode=require
+      - NEXTAUTH_SECRET=dev-secret-key
+      - NEXTAUTH_URL=http://localhost:3000
+    depends_on:
+      - postgres
+    volumes:
+      - ./src:/app/src
+      - /app/node_modules
+
+volumes:
+  postgres_data:
