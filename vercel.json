@@ -1,5 +1,5 @@
 {
-  "regions": ["iad1", "sfo1", "hnd1"],
+  "regions": ["iad1"],
   "functions": {
     "app/api/spin/route.ts": {
       "memory": 1024,
