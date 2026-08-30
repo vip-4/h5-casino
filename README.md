@@ -142,6 +142,49 @@ npm run dev
 
 访问 http://localhost:3000/game/slot
 
+## Neon 分支工作流（Magic Circle 模式）
+
+本项目采用类似 Magic Circle 的 Neon 分支策略，实现零干扰的并行开发：
+
+### 1. PR 自动创建分支
+
+每次创建 PR 时，GitHub Actions 会自动：
+1. 从 `main` 分支创建 Neon 数据库分支 `pr-{number}`
+2. 在 PR 中评论分支详情和连接字符串
+3. 自动运行迁移和测试
+4. PR 合并/关闭时自动删除分支
+
+### 2. 开发者本地分支
+
+每个开发者可以创建自己的开发分支：
+
+```bash
+# Linux/Mac
+export NEON_API_KEY="your-api-key"
+bash scripts/dev-branch.sh dev-yourname
+
+# Windows PowerShell
+$env:NEON_API_KEY = "your-api-key"
+.\scripts\dev-branch.ps1 dev-yourname
+```
+
+### 3. 分支结构
+
+```
+main (production)
+├── pr-1 (feature/login)
+├── pr-2 (feature/slot)
+├── dev-alice
+└── dev-bob
+```
+
+### 4. 快速回滚
+
+```bash
+# 从特定时间点恢复
+neonctl branches create rollback-$(date +%Y%m%d) --parent main --timestamp "2 hours ago"
+```
+
 ## 部署到生产环境
 
 ### 已完成的部署

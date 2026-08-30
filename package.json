@@ -7,9 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "prisma migrate dev --name init",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:push": "tsx scripts/migrate.ts",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:create-branch": "powershell -File scripts/dev-branch.ps1"
   },
   "dependencies": {
     "next": "^14.2.0",
