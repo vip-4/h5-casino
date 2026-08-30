@@ -1,0 +1,21 @@
+{
+  "name": "h5-casino-cf",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create zyg-h5game-db",
+    "db:migrate": "wrangler d1 execute zyg-h5game-db --file=migrations/001_initial.sql",
+    "db:seed": "wrangler d1 execute zyg-h5game-db --file=migrations/seed.sql",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240620.0",
+    "wrangler": "^3.0.0",
+    "typescript": "^5.4.0"
+  }
+}

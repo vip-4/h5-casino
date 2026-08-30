@@ -1,0 +1,16 @@
+name = "h5-casino-cf"
+main = "src/index.ts"
+compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2024-12-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "zyg-h5game-db"
+database_id = "replace-with-your-database-id"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "replace-with-your-kv-namespace-id"
+
+[observability]
+enabled = true

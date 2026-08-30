@@ -218,6 +218,83 @@ neonctl branches create rollback-$(date +%Y%m%d) --parent main --timestamp "2 ho
 | `CLOUDFLARE_ZONE_ID` | Cloudflare Zone ID | Cloudflare Dashboard → Domain → Overview |
 | `SLACK_WEBHOOK` | Slack 通知 Webhook | Slack → Apps → Incoming Webhooks |
 
+### Cloudflare Workers 挂机游戏后端
+
+本项目包含完整的 H5 挂机游戏后端，基于 Cloudflare Workers + Hono + D1 构建：
+
+#### 架构
+
+```
+Cloudflare Workers (Hono)
+├── D1 Database (玩家数据、装备、背包)
+├── KV Cache (排行榜、会话)
+└── Edge Network (全球低延迟)
+```
+
+#### 快速部署
+
+```bash
+# 进入 Cloudflare 目录
+cd cloudflare
+
+# 安装依赖
+npm install
+
+# 创建 D1 数据库
+wrangler d1 create zyg-h5game-db
+
+# 运行迁移
+wrangler d1 execute zyg-h5game-db --file=migrations/001_initial.sql
+wrangler d1 execute zyg-h5game-db --file=migrations/seed.sql
+
+# 本地开发
+wrangler dev
+
+# 部署到生产
+wrangler deploy
+```
+
+#### 游戏 API
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/api/auth/register` | POST | 用户注册 |
+| `/api/auth/login` | POST | 用户登录 |
+| `/api/player/info` | GET | 玩家信息 |
+| `/api/map/list` | GET | 地图列表 |
+| `/api/combat/start` | POST | 开始战斗 |
+| `/api/combat/auto` | POST | 自动战斗 |
+| `/api/inventory/list` | GET | 背包列表 |
+| `/api/equipment/list` | GET | 装备列表 |
+| `/api/enhance/start` | POST | 装备强化 |
+| `/api/shop/buy` | POST | 购买物品 |
+| `/api/rebirth/perform` | POST | 转生 |
+| `/api/admin/users` | GET | 管理后台-用户列表 |
+| `/api/admin/logs` | GET | 管理后台-战斗日志 |
+| `/api/admin/maps` | POST | 管理后台-添加地图 |
+
+#### 游戏特性
+
+- **自动战斗系统**: 支持 10 连战快速刷怪
+- **装备品质系统**: 普通/稀有/极品/神品/超神品
+- **装备强化**: 概率成功，失败保留装备
+- **转生系统**: 50 级转生获得永久属性加成
+- **Admin 管理后台**: 玩家管理、地图管理、物品管理
+
+#### GitHub Actions 自动部署
+
+推送到 `main` 分支时自动部署 Cloudflare Workers：
+
+```yaml
+# .github/workflows/deploy-cloudflare.yml
+name: Deploy Cloudflare Workers
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cloudflare/**'
+```
+
 ### Cloudflare 配置
 
 #### 1. 域名接入
